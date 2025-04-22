@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wedding Wishes for Sindhuja & Srikanth</title> 
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Montserrat:wght@400;600&family=Poppins:wght@300;400;600;700&display=swap');
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #fef6f6; /* Soft pink background */
+            overflow-x: hidden;
+            margin: 0;
+        }
+
+        .dancing-font {
+            font-family: 'Dancing Script', cursive;
+        }
+
+        .montserrat {
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        #main-container {
+            position: relative;
+            z-index: 1;
+        }
+
+        #threejs-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none; /* Allow clicks to pass through */
+        }
+
+        .countdown-container {
+            perspective: 1000px;
+        }
+
+        .countdown-number {
+            transform-style: preserve-3d;
+            transition: transform 0.5s ease-out;
+        }
+
+        .floating {
+            animation: floating 3.5s ease-in-out infinite; /* Slightly slower */
+        }
+
+        @keyframes floating {
+            0% { transform: translate(0, 0px); }
+            50% { transform: translate(0, 8px); } /* Reduced float distance */
+            100% { transform: translate(0, -0px); }
+        }
+
+        .card {
+            transform-style: preserve-3d;
+            transition: transform 0.6s ease;
+            position: relative;
+            min-height: 16rem;
+        }
+
+        .card-container:hover .card {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            backface-visibility: hidden;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            border-radius: 0.5rem; /* rounded-lg */
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        .card-front {
+             background-color: white;
+        }
+
+        .card-back {
+            background-color: #ffe4e6; /* Lighter pink */
+            transform: rotateY(180deg);
+        }
+
+        .gift-container {
+            margin: 0 auto;
+            position: relative;
+        }
+
+        #giftModel {
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        #giftContent {
+            opacity: 0;
+            transform: translateY(30px) scale(0.9);
+            transition: opacity 0.5s ease-out 0.2s, transform 0.5s ease-out 0.2s; /* Added delay */
+        }
+        #giftContent.visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        .form-input input, .form-input textarea {
+             width: 100%;
+             padding: 0.75rem 1rem;
+             border: 1px solid #d1d5db;
+             border-radius: 0.5rem;
+             transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .form-input input:focus, .form-input textarea:focus {
+             outline: none;
+             border-color: #ec4899;
+             box-shadow: 0 0 0 2px rgba(236, 72, 153, 0.4);
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .model-placeholder {
+            width: 8rem;
+            height: 8rem;
+            margin-bottom: 1rem;
+        }
+        .photo-placeholder {
+            height: 16rem;
+            width: 100%;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            background-color: #fce7f3;
+            overflow: hidden;
+        }
+        #revealedGiftModelContainer {
+             width: 12rem;
+             height: 12rem;
+             opacity: 0;
+             transform: scale(0);
+             position: relative; /* Needed for inner absolute positioning */
+        }
+
+        /* Hero Image Styles */
+        #coupleImageContainer {
+            perspective: 1000px; /* Enable 3D transforms for children */
+        }
+        .image-rotate-container {
+            transform-style: preserve-3d;
+            transition: transform 0.7s cubic-bezier(0.25, 1, 0.5, 1); /* Smoother transition */
+            cursor: pointer;
+        }
+        #coupleImageContainer:hover .image-rotate-container {
+            transform: rotateY(15deg) rotateX(5deg) scale(1.08); /* Rotate and scale on hover */
+        }
+        .couple-image {
+            backface-visibility: hidden; /* Hide back when rotating */
+            box-shadow: 0 10px 25px -5px rgba(236, 72, 153, 0.3), 0 8px 10px -6px rgba(236, 72, 153, 0.2); /* Softer pink shadow */
+            border: 4px solid white; /* White border */
+        }
+        /* Optional decorative elements */
+        .deco-bubble {
+             position: absolute;
+             border-radius: 50%;
+             background-color: rgba(255, 107, 129, 0.2); /* Semi-transparent pink */
+             transition: transform 0.5s ease-out, opacity 0.5s ease-out;
+             animation: pulse-bubble 4s infinite ease-in-out;
+        }
+         #coupleImageContainer:hover .deco-bubble {
+             transform: scale(1.2);
+             opacity: 0.5;
+         }
+
+        @keyframes pulse-bubble {
+            0%, 100% { transform: scale(1); opacity: 0.3; }
+            50% { transform: scale(1.1); opacity: 0.4; }
+        }
+        @keyframes pulse-slow { /* Keep this if used elsewhere */
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.4; }
+        }
+  /* Frame Container Enhancements */
+  .couple-frame {
+    position: relative;
+    width: 16rem;
+    height: 16rem;
+    margin: auto;
+    border-radius: 50%;
+    padding: 6px;
+    background: linear-gradient(135deg, #ff9a9e, #fad0c4, #fad0c4, #ffdde1);
+    box-shadow: 0 0 15px rgba(255, 182, 193, 0.5), inset 0 0 6px rgba(255, 182, 193, 0.3);
+  }
+
+  .couple-frame .inner-circle {
+    border-radius: 50%;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    box-shadow: inset 0 0 6px rgba(0,0,0,0.1);
+  }
+
+  .couple-image {
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  #contributorNames {
+    /* Remove absolute positioning */
+    position: relative; /* or just remove this line entirely */
+    top: auto;           /* remove or override */
+    left: auto;
+    transform: none;
+    
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    max-width: 90vw;
+    margin: 1rem auto; /* spacing */
+    padding: 0.5rem;
+    opacity: 1; /* Optional: control via JS/GSAP if needed */
+    pointer-events: auto;
+}
+
+
+    .contributor-tag {
+        background-color: #fff0f5; /* Lavender blush - very light pink */
+        color: #db2777; /* Pink-600 */
+        padding: 0.25rem 0.6rem; /* Smaller padding */
+        border-radius: 9999px; /* Pill shape */
+        font-size: 0.7rem; /* Smaller font */
+        font-weight: 500;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        white-space: nowrap; /* Prevent names wrapping */
+        opacity: 0; /* Start hidden - controlled by GSAP */
+        /* Transform origin for animation */
+        transform-origin: center bottom;
+    }
+
+
+  /* Optional sparkle effect */
+  .sparkle {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: radial-gradient(white, rgba(255,255,255,0));
+    border-radius: 50%;
+    animation: sparkleAnim 1.8s infinite;
+  }
+
+  .sparkle:nth-child(1) {
+    top: 10%;
+    left: 80%;
+    animation-delay: 0.3s;
+  }
+
+  .sparkle:nth-child(2) {
+    top: 70%;
+    left: 20%;
+    animation-delay: 1s;
+  }
+
+  .sparkle:nth-child(3) {
+    top: 50%;
+    left: 90%;
+    animation-delay: 1.5s;
+  }
+
+  @keyframes sparkleAnim {
+    0%, 100% { opacity: 0; transform: scale(0.5); }
+    50% { opacity: 1; transform: scale(1); }
+  }
+
+  /* Responsive */
+  @media (min-width: 768px) {
+    .couple-frame {
+      width: 20rem;
+      height: 20rem;
+    }
+  }
+
+    </style>
+</head>
+<body class="antialiased">
+    <!-- Three.js Container -->
+    <div id="threejs-container"></div>
+
+    <!-- Main Content Container -->
+    <div id="main-container" class="min-h-screen relative overflow-hidden">
+        <!-- Header Section -->
+        <header class="relative z-10 py-8 md:py-12 text-center px-4">
+            <h1 class="text-4xl sm:text-5xl md:text-7xl font-bold text-pink-600 dancing-font mb-4 floating">Wedding Wishes</h1>
+
+            <div id="coupleImageContainer" class="relative w-48 h-48 md:w-64 md:h-64 mx-auto mb-6 md:mb-8">
+                <div class="image-rotate-container relative w-full h-full">
+                    <img src="image1.jpg"
+                         alt="Sindhuja & Srikanth"
+                         class="couple-image absolute inset-0 w-full h-full object-cover rounded-full">
+                </div>
+                 <div class="deco-bubble" style="width: 4rem; height: 4rem; top: -1rem; left: -1.5rem; animation-delay: 0s;"></div>
+                 <div class="deco-bubble" style="width: 3rem; height: 3rem; bottom: -0.5rem; right: -1rem; animation-delay: 0.5s;"></div>
+                 <div class="deco-bubble" style="width: 2rem; height: 2rem; top: 2rem; right: -2rem; animation-delay: 1s;"></div>
+            </div>
+            <
+
+            <h2 class="text-2xl sm:text-3xl md:text-5xl text-gray-800 dancing-font mb-2">For Sindhuja & Srikanth</h2>
+            <p class="text-lg md:text-xl text-gray-600 montserrat">Celebrating your beautiful journey together!</p> 
+        </header>
+
+        <!-- 3D Countdown Section -->
+        <section class="py-10 md:py-12 bg-white bg-opacity-70 backdrop-blur-sm rounded-lg mx-4 sm:mx-8 md:mx-16 my-8 shadow-lg countdown-container">
+            <h2 class="text-2xl md:text-3xl text-center text-pink-600 dancing-font mb-6 md:mb-8">Counting Down to Your Special Day</h2>
+            <div class="flex justify-center gap-2 sm:gap-4 md:gap-8 flex-wrap px-2">
+                 <div class="text-center mb-4 sm:mb-0">
+                    <div class="countdown-number w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-pink-500 text-white text-xl sm:text-2xl md:text-4xl font-bold rounded-lg flex items-center justify-center mb-2 shadow-md" id="days">00</div>
+                    <span class="text-sm sm:text-base text-gray-600">Days</span>
+                </div>
+                <div class="text-center mb-4 sm:mb-0">
+                    <div class="countdown-number w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-pink-500 text-white text-xl sm:text-2xl md:text-4xl font-bold rounded-lg flex items-center justify-center mb-2 shadow-md" id="hours">00</div>
+                    <span class="text-sm sm:text-base text-gray-600">Hours</span>
+                </div>
+                <div class="text-center mb-4 sm:mb-0">
+                    <div class="countdown-number w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-pink-500 text-white text-xl sm:text-2xl md:text-4xl font-bold rounded-lg flex items-center justify-center mb-2 shadow-md" id="minutes">00</div>
+                    <span class="text-sm sm:text-base text-gray-600">Minutes</span>
+                </div>
+                <div class="text-center mb-4 sm:mb-0">
+                    <div class="countdown-number w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-pink-500 text-white text-xl sm:text-2xl md:text-4xl font-bold rounded-lg flex items-center justify-center mb-2 shadow-md" id="seconds">00</div>
+                    <span class="text-sm sm:text-base text-gray-600">Seconds</span>
+                </div>
+            </div>
+            <div id="countdownModel" class="w-full h-32 md:h-48 mt-6 md:mt-8"></div>
+        </section>
+
+        <!-- 3D Wishes Section -->
+        <section class="py-10 md:py-12 px-4 sm:px-8 md:px-16">
+            <h2 class="text-2xl md:text-3xl text-center text-pink-600 dancing-font mb-10 md:mb-12">Heartfelt Wishes</h2>
+             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="card-container">
+                    <div class="relative rounded-lg card">
+                        <div class="card-front">
+                            <div id="loveModel" class="model-placeholder"></div>
+                            <h3 class="text-xl font-bold text-gray-800 mb-2 text-center">Love</h3>
+                            <p class="text-gray-600 text-center text-sm sm:text-base">May your love shine brighter every single day.</p>
+                        </div>
+                        <div class="card-back">
+                            <p class="text-gray-800 italic text-center text-sm sm:text-base">"To love and be loved is to feel the sun from both sides." - David Viscott</p>
+                        </div>
+                    </div>
+                </div>
+                 <div class="card-container">
+                    <div class="relative rounded-lg card">
+                        <div class="card-front">
+                            <div id="happinessModel" class="model-placeholder"></div>
+                            <h3 class="text-xl font-bold text-gray-800 mb-2 text-center">Happiness</h3>
+                            <p class="text-gray-600 text-center text-sm sm:text-base">Wishing you endless joy, laughter, and cherished moments.</p>
+                        </div>
+                        <div class="card-back">
+                            <p class="text-gray-800 italic text-center text-sm sm:text-base">"The secret of a happy marriage is finding the right person. You know they're right if you love to be with them all the time." - Julia Child</p>
+                        </div>
+                    </div>
+                 </div>
+                 <div class="card-container">
+                    <div class="relative rounded-lg card">
+                        <div class="card-front">
+                            <div id="togetherModel" class="model-placeholder"></div>
+                            <h3 class="text-xl font-bold text-gray-800 mb-2 text-center">Togetherness</h3>
+                            <p class="text-gray-600 text-center text-sm sm:text-base">May you always find strength, comfort, and adventure in each other.</p>
+                        </div>
+                        <div class="card-back">
+                            <p class="text-gray-800 italic text-center text-sm sm:text-base">"Being deeply loved by someone gives you strength, while loving someone deeply gives you courage." - Lao Tzu</p>
+                        </div>
+                    </div>
+                 </div>
+            </div>
+        </section>
+
+        <!-- 3D Photo Gallery -->
+        <section class="py-10 md:py-12 px-4 sm:px-8 md:px-16">
+            <h2 class="text-2xl md:text-3xl text-center text-pink-600 dancing-font mb-10 md:mb-12">Beautiful Memories</h2>
+             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                <div id="photoModel1" class="photo-placeholder"></div>
+                <div id="photoModel2" class="photo-placeholder"></div>
+            </div>
+        </section>
+
+        <!-- 3D Gift Section -->
+        <section class="py-12 md:py-16 px-4 sm:px-8 md:px-16 text-center">
+            <h2 class="text-2xl md:text-3xl text-pink-600 dancing-font mb-6 md:mb-8">A Special Gift For You Both</h2>
+            <p class="text-gray-600 mb-8 md:mb-12 max-w-xl md:max-w-2xl mx-auto text-sm sm:text-base">Click the gift box below to reveal a surprise we've prepared for your new life together!</p>
+             <div class="gift-container mb-10 md:mb-12 w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64">
+                <div id="giftModel"></div>
+            </div>
+
+            <div id="giftContent" class="max-w-xl md:max-w-2xl mx-auto bg-white bg-opacity-80 backdrop-blur-sm rounded-lg p-6 md:p-8 shadow-lg">
+                
+                <h3 class="text-xl md:text-2xl text-pink-600 dancing-font mb-4">Congratulations, Sindhuja & Srikanth!</h3>
+                <div class="flex justify-center mb-4 md:mb-6">
+                    <div id="coupleImageContainer" class="relative w-48 h-48 md:w-64 md:h-64 mx-auto mb-6 md:mb-8">
+                        <div class="image-rotate-container relative w-full h-full">
+                            <img src="https://www.eurekaforbes.com/cms/assets/prod/aquaguard_jazz_ro_uv_ta_ac_water_purifier_right_tilted_8f1216ee05.jpg"
+                                 alt="Sindhuja & Srikanth"
+                                 class="couple-image absolute inset-0 w-full h-full  rounded-full">
+                        </div>
+                         <div class="deco-bubble" style="width: 4rem; height: 4rem; top: -1rem; left: -1.5rem; animation-delay: 0s;"></div>
+                         <div class="deco-bubble" style="width: 3rem; height: 3rem; bottom: -0.5rem; right: -1rem; animation-delay: 0.5s;"></div>
+                         <div class="deco-bubble" style="width: 2rem; height: 2rem; top: 2rem; right: -2rem; animation-delay: 1s;"></div>
+                    </div>
+                </div>
+                <p class="text-gray-700 mb-6 text-sm sm:text-base">We're so excited for you! Please fill out the details below so we can send your gift.</p>
+                <div id="contributorNames">
+                    <span class="contributor-tag">Noor</span>
+                    <span class="contributor-tag">Visala</span>
+                    <span class="contributor-tag">Bhavani</span>
+                    <span class="contributor-tag">Priyanka</span>
+                    <span class="contributor-tag">Lenin</span>
+                    <span class="contributor-tag">Kamala</span>
+                    <span class="contributor-tag">Prameela</span>
+                    <span class="contributor-tag">Devi</span>
+                    <span class="contributor-tag">Anusha</span>
+                </div>
+                <div id="cheersCards" class="hidden flex flex-wrap justify-center gap-2 mb-6">
+                    <div class="px-3 py-1 bg-pink-100 rounded-full text-pink-700 shadow-sm text-xs">Cheers!</div>
+                    <div class="px-3 py-1 bg-pink-100 rounded-full text-pink-700 shadow-sm text-xs">Congrats!</div>
+                    <div class="px-3 py-1 bg-pink-100 rounded-full text-pink-700 shadow-sm text-xs">Best Wishes!</div>
+                    <div class="px-3 py-1 bg-pink-100 rounded-full text-pink-700 shadow-sm text-xs">So Happy!</div>
+                    <div class="px-3 py-1 bg-pink-100 rounded-full text-pink-700 shadow-sm text-xs">Love!</div>
+                </div>
+
+                <form id="deliveryForm1" onsubmit="sendEmail(); return false;" class="text-left space-y-4">
+                    <div class="form-input">
+                        <label for="name" class="block text-gray-700 mb-1 text-sm font-medium">Your Names</label>
+                        <input type="text" id="name" name="name" required placeholder="Sindhuja & Srikanth">
+                    </div>
+                    <div class="form-input">
+                        <label for="email" class="block text-gray-700 mb-1 text-sm font-medium">Contact Email</label>
+                        <input type="email" id="email" name="email" required placeholder="you@example.com">
+                    </div>
+                    <div class="form-input">
+                        <label for="address" class="block text-gray-700 mb-1 text-sm font-medium">Delivery Address</label>
+                        <textarea id="address" name="address" rows="3" required placeholder="Street, City, State, Zip"></textarea>
+                    </div>
+                    <div class="form-input">
+                        <label for="deliveryDate" class="block text-gray-700 mb-1 text-sm font-medium">Preferred Delivery Date</label>
+                        <input type="date" id="deliveryDate" name="deliveryDate" required>
+                    </div>
+                    <div class="form-input">
+                        <label for="message" class="block text-gray-700 mb-1 text-sm font-medium">Personal Message (Optional)</label>
+                        <textarea id="message" name="message" rows="2" placeholder="Anything else we should know?"></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-pink-600 text-white py-3 px-6 rounded-lg hover:bg-pink-700 transition-colors duration-300 shadow-md font-semibold text-base">
+                        Schedule My Gift Delivery!
+                    </button>
+                </form>
+                
+                
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="py-6 md:py-8 bg-pink-50 text-center mt-8">
+            <p class="text-gray-600 text-sm sm:text-base">Made with <span class="text-pink-500 text-lg">❤️</span> for Sindhuja & Srikanth</p>
+            <p class="text-gray-500 text-xs sm:text-sm mt-2">Wedding Date: April 23, 2025</p>
+        </footer>
+    </div>
+
+    
+    <script>
+        function sendEmail() {
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const address = document.getElementById('address').value;
+            const deliveryDate = document.getElementById('deliveryDate').value;
+            const message = document.getElementById('message').value;
+        
+            const subject = 'Gift Delivery Request';
+            const body = `
+                Name: ${name}
+                Email: ${email}
+                Delivery Address: ${address}
+                Preferred Delivery Date: ${deliveryDate}
+                Personal Message: ${message}
+            `.trim();
+        
+            // Create a mailto link with prefilled details
+            const mailtoLink = `mailto:someone@example.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        
+            // Open the default mail client
+            window.location.href = mailtoLink;
+        }
+        </script>
+
+    <script>
+        // --- Three.js Setup ---
+        let scene, camera, renderer;
+        let giftBoxGroup, giftLid, giftBase;
+        let isGiftOpen = false;
+        let backgroundParticles = []; // Store all background particles here
+        let modelRenderers = {};
+        let giftTimeline;
+
+        // --- Constants ---
+        const PINK_COLOR = 0xff6b81;
+        const LIGHT_PINK_COLOR = 0xffaec0;
+        const RED_COLOR = 0xff0000;
+        const DARK_RED_COLOR = 0xcc0000;
+        const WHITE_COLOR = 0xffffff;
+        const GOLD_COLOR = 0xffd700;
+        const SILVER_COLOR = 0xc0c0c0;
+        const WOOD_COLOR = 0x8b4513;
+        const BUBBLE_COLOR = 0xffffff;
+        const SPARKLE_COLOR = 0xfffafa;
+        const PETAL_COLORS = [0xffb6c1, 0xffc0cb, 0xffe4e1, 0xf08080]; // Light pinks, coral
+
+        function initThreeJS() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xfef6f6);
+            scene.fog = new THREE.Fog(0xfef6f6, 60, 180); // Adjusted fog
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 40; // Slightly closer camera
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            document.getElementById('threejs-container').appendChild(renderer.domElement);
+
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7); // Slightly brighter ambient
+            scene.add(ambientLight);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.9); // Slightly brighter directional
+            directionalLight.position.set(5, 10, 7);
+            scene.add(directionalLight);
+            const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.4);
+            directionalLight2.position.set(-5, -5, -5);
+            scene.add(directionalLight2);
+
+            // *** Create the new particle background ***
+            createFloatingBackgroundParticles();
+
+            // Initialize placeholders (cards, photos, gift)
+            initPlaceholderModels();
+
+            animateMainScene();
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+
+            for (const id in modelRenderers) {
+                const item = modelRenderers[id];
+                const container = document.getElementById(id);
+                if (container) {
+                    const width = container.clientWidth;
+                    const height = container.clientHeight;
+                     // Prevent zero size errors
+                    if (width > 0 && height > 0) {
+                        item.renderer.setSize(width, height);
+                        item.camera.aspect = width / height;
+                        item.camera.updateProjectionMatrix();
+                    }
+                }
+            }
+            // Specific resize logic (if needed, like for photos maintaining aspect)
+            ['photoModel1', 'photoModel2'].forEach(id => {
+                 const photoContainer = document.getElementById(id);
+                 if (photoContainer && modelRenderers[id]) {
+                     const width = photoContainer.clientWidth;
+                     const height = photoContainer.clientHeight;
+                     if (width > 0 && height > 0) {
+                         modelRenderers[id].renderer.setSize(width, height);
+                         // Camera aspect ratio might need adjustment based on content,
+                         // but often just resizing renderer is enough for plane geometry.
+                         modelRenderers[id].camera.aspect = width / height;
+                         modelRenderers[id].camera.updateProjectionMatrix();
+                     }
+                 }
+             });
+        }
+
+        function animateMainScene() {
+            requestAnimationFrame(animateMainScene);
+            const delta = 0.016; // Simulate constant time step for simplicity
+            const time = Date.now() * 0.0005;
+
+            // --- Animate Background Particles ---
+            backgroundParticles.forEach(p => {
+                // Common movement
+                p.position.y += p.userData.velocityY * delta;
+                p.position.x += p.userData.velocityX * delta;
+                p.rotation.x += p.userData.rotationX * delta;
+                p.rotation.y += p.userData.rotationY * delta;
+                p.rotation.z += p.userData.rotationZ * delta;
+
+                // Type-specific adjustments
+                if (p.userData.type === 'bubble' || p.userData.type === 'balloon') {
+                    // Gentle sine wave sideways drift
+                    p.position.x += Math.sin(time * p.userData.driftSpeed + p.userData.offset) * 0.05;
+                } else if (p.userData.type === 'petal' || p.userData.type === 'heart') {
+                     // Fluttering motion
+                     p.position.y += Math.cos(time * p.userData.flutterSpeed + p.userData.offset) * 0.02;
+                }
+
+                // Boundary Check (simple wrap around)
+                if (p.position.y < -50) p.position.y = 50; // Reset below to top
+                if (p.position.y > 50) p.position.y = -50; // Reset above to bottom
+                if (p.position.x < -60) p.position.x = 60;
+                if (p.position.x > 60) p.position.x = -60;
+                if (p.position.z < -80) p.position.z = camera.position.z - 10; // Reset behind camera
+                if (p.position.z > camera.position.z + 10) p.position.z = -80; // Reset way in front to back
+
+                 // Fade in/out for sparkles (optional)
+                 if (p.userData.type === 'sparkle') {
+                    // Basic example: fade based on lifetime
+                    // p.material.opacity = Math.max(0, 1 - (Date.now() - p.userData.startTime) / p.userData.lifeTime);
+                    // More complex logic needed for continuous respawning sparkles
+                 }
+            });
+
+            renderer.render(scene, camera);
+        }
+
+        // *** New Particle Background Function ***
+        function createFloatingBackgroundParticles() {
+            const particleCount = 250; // More particles!
+            const spread = 100; // Area to spread particles
+
+            // Geometries
+            const heartShape = new THREE.Shape();
+heartShape.moveTo(0.25, -0.25); // Flipped Y
+
+heartShape.bezierCurveTo(0.25, -0.25, 0.2, 0, 0, 0);
+heartShape.bezierCurveTo(-0.3, 0, -0.3, -0.35, -0.3, -0.35);
+heartShape.bezierCurveTo(-0.3, -0.55, -0.1, -0.77, 0.25, -0.95);
+heartShape.bezierCurveTo(0.6, -0.77, 0.8, -0.55, 0.8, -0.35);
+heartShape.bezierCurveTo(0.8, -0.35, 0.8, 0, 0.5, 0);
+heartShape.bezierCurveTo(0.35, 0, 0.25, -0.25, 0.25, -0.25);
+
+
+            const heartGeom = new THREE.ExtrudeGeometry(heartShape, { depth: 0.05, bevelEnabled: false });
+
+            const petalGeom = new THREE.PlaneGeometry(0.5, 0.8); // Simple plane for petals
+            const bubbleGeom = new THREE.SphereGeometry(0.3, 16, 8); // Smaller spheres for bubbles
+            const sparkleGeom = new THREE.SphereGeometry(0.1, 8, 4); // Tiny spheres for sparkles
+            const balloonGeom = new THREE.SphereGeometry(0.8, 16, 12); // Larger spheres for balloons
+
+
+            // Materials
+            const heartMat = new THREE.MeshStandardMaterial({ color: PINK_COLOR, roughness: 0.6, side: THREE.DoubleSide });
+            const petalMat = new THREE.MeshStandardMaterial({ roughness: 0.8, side: THREE.DoubleSide, transparent: true, opacity: 0.9 });
+            const bubbleMat = new THREE.MeshStandardMaterial({ color: BUBBLE_COLOR, roughness: 0.1, metalness: 0.1, transparent: true, opacity: 0.4 });
+            const sparkleMat = new THREE.MeshBasicMaterial({ color: SPARKLE_COLOR, transparent: true, opacity: 0.8 }); // Basic for bright sparkles
+            const balloonMat = new THREE.MeshStandardMaterial({ roughness: 0.4, transparent: true, opacity: 0.7 });
+
+            const particleTypes = ['heart', 'petal', 'bubble', 'sparkle', 'balloon'];
+            const typeWeights = [0.25, 0.30, 0.20, 0.15, 0.10]; // Probability of each type
+
+            for (let i = 0; i < particleCount; i++) {
+                let geometry, material, type, scaleMultiplier = 1;
+
+                // Weighted random type selection
+                 const rand = Math.random();
+                 let cumulativeWeight = 0;
+                 for (let j = 0; j < particleTypes.length; j++) {
+                     cumulativeWeight += typeWeights[j];
+                     if (rand <= cumulativeWeight) {
+                         type = particleTypes[j];
+                         break;
+                     }
+                 }
+
+                switch (type) {
+                    case 'heart':
+                        geometry = heartGeom;
+                        material = heartMat.clone();
+                        material.color.setHex(Math.random() > 0.5 ? PINK_COLOR : LIGHT_PINK_COLOR);
+                        scaleMultiplier = 1.5 + Math.random() * 1.5; // Larger hearts
+                        break;
+                    case 'petal':
+                        geometry = petalGeom;
+                        material = petalMat.clone();
+                        material.color.setHex(PETAL_COLORS[Math.floor(Math.random() * PETAL_COLORS.length)]);
+                        scaleMultiplier = 1 + Math.random();
+                        break;
+                    case 'bubble':
+                        geometry = bubbleGeom;
+                        material = bubbleMat.clone();
+                         material.opacity = 0.3 + Math.random() * 0.3;
+                        scaleMultiplier = 1 + Math.random();
+                        break;
+                    case 'sparkle':
+                        geometry = sparkleGeom;
+                        material = sparkleMat.clone();
+                         material.opacity = 0.5 + Math.random() * 0.5;
+                        scaleMultiplier = 0.5 + Math.random();
+                        break;
+                     case 'balloon':
+                         geometry = balloonGeom;
+                         material = balloonMat.clone();
+                         material.color.setHSL(Math.random(), 0.8, 0.7); // Random bright colors
+                         material.opacity = 0.6 + Math.random() * 0.2;
+                         scaleMultiplier = 1.5 + Math.random();
+                         break;
+                     default: // Fallback
+                         geometry = sparkleGeom;
+                         material = sparkleMat.clone();
+                         type = 'sparkle';
+                         break;
+                }
+
+                const particle = new THREE.Mesh(geometry, material);
+
+                // Positioning
+                particle.position.set(
+                    (Math.random() - 0.5) * spread,
+                    (Math.random() - 0.5) * spread,
+                    (Math.random() - 0.5) * spread * 1.5 - 30 // Spread more in Z, start further back
+                );
+
+                // Rotation
+                particle.rotation.set(
+                    Math.random() * Math.PI * 2,
+                    Math.random() * Math.PI * 2,
+                    Math.random() * Math.PI * 2
+                );
+
+                // Scale
+                const scale = (Math.random() * 0.5 + 0.5) * scaleMultiplier;
+                particle.scale.set(scale, scale, scale);
+
+                // Animation Data
+                particle.userData = {
+                    type: type,
+                    velocityX: (Math.random() - 0.5) * 0.5, // Sideways velocity
+                    velocityY: (type === 'bubble' || type === 'balloon') ? (Math.random() * 0.5 + 0.3) : (Math.random() * 0.4 - 0.2), // Bubbles/Balloons float up
+                    rotationX: (Math.random() - 0.5) * 0.5,
+                    rotationY: (Math.random() - 0.5) * 0.5,
+                    rotationZ: (Math.random() - 0.5) * 0.5,
+                    offset: Math.random() * Math.PI * 2, // For sine waves
+                    driftSpeed: Math.random() * 0.5 + 0.2,
+                    flutterSpeed: Math.random() * 1 + 0.5,
+                    // startTime: Date.now(), // For timed effects like sparkles
+                    // lifeTime: 1000 + Math.random() * 2000
+                };
+
+                scene.add(particle);
+                backgroundParticles.push(particle);
+            }
+        }
+
+
+        // --- Placeholder Model Initialization ---
+        function initPlaceholderModels() {
+            // Removed initRingModel call
+            initCountdownModel(); // Simplified version
+            initWishModels();
+            initPhotoModels();
+            initGiftModel();
+            initRevealedGiftModel();
+        }
+
+        function createPlaceholderScene(containerId, needsOrbitControls = false) {
+             const container = document.getElementById(containerId);
+            if (!container) {
+                console.error("Container not found:", containerId);
+                return null;
+            }
+             // Use requestAnimationFrame to wait for layout calculation if needed
+            // requestAnimationFrame(() => { ... });
+             let width = container.clientWidth || 128;
+             let height = container.clientHeight || 128;
+             if (width <= 0 || height <=0) { // Check for valid dimensions
+                 console.warn(`Container ${containerId} has zero dimensions initially.`);
+                 width = 128; height = 128; // Fallback size
+             }
+
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 100);
+            camera.position.z = 8;
+
+            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(width, height);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.innerHTML = '';
+            container.appendChild(renderer.domElement);
+
+            scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+            const light = new THREE.DirectionalLight(0xffffff, 0.8);
+            light.position.set(2, 3, 4);
+            scene.add(light);
+
+            let controls = null;
+            if (needsOrbitControls) {
+                controls = new THREE.OrbitControls(camera, renderer.domElement);
+                controls.enableZoom = false;
+                controls.enablePan = false;
+                controls.autoRotate = true;
+                controls.autoRotateSpeed = 1.5;
+                controls.target.set(0,0,0); // Ensure target is at origin
+                controls.update();
+            }
+
+             modelRenderers[containerId] = { renderer, camera, scene, controls };
+            return { scene, camera, renderer, controls };
+        }
+
+        // --- Simplified Countdown Model ---
+        function initCountdownModel() {
+            const setup = createPlaceholderScene('countdownModel', true);
+            if (!setup) return;
+            const { scene, camera, renderer, controls } = setup;
+            camera.position.z = 8;
+            if(controls) controls.autoRotateSpeed = 1.0;
+
+            // Just a simple rotating heart
+            const heartShape = new THREE.Shape();
+heartShape.moveTo(0.25, -0.25); // Flipped Y
+
+heartShape.bezierCurveTo(0.25, -0.25, 0.2, 0, 0, 0);
+heartShape.bezierCurveTo(-0.3, 0, -0.3, -0.35, -0.3, -0.35);
+heartShape.bezierCurveTo(-0.3, -0.55, -0.1, -0.77, 0.25, -0.95);
+heartShape.bezierCurveTo(0.6, -0.77, 0.8, -0.55, 0.8, -0.35);
+heartShape.bezierCurveTo(0.8, -0.35, 0.8, 0, 0.5, 0);
+heartShape.bezierCurveTo(0.35, 0, 0.25, -0.25, 0.25, -0.25);
+
+            const extrudeSettings = { depth: 0.5, bevelEnabled: true, bevelThickness: 0.1, bevelSize: 0.1, bevelSegments: 3 };
+            const geometry = new THREE.ExtrudeGeometry(heartShape, extrudeSettings);
+            const material = new THREE.MeshStandardMaterial({ color: PINK_COLOR, roughness: 0.4, metalness: 0.1 });
+            const heart = new THREE.Mesh(geometry, material);
+            heart.scale.set(3, 3, 3); // Make it reasonably large
+            scene.add(heart);
+
+            function animate() {
+                requestAnimationFrame(animate);
+                if(controls) controls.update();
+                renderer.render(scene, camera);
+            }
+            animate();
+            onWindowResize(); // Initial size
+        }
+
+
+        // --- Wish Card Models (Keep as is for now) ---
+        function initWishModels() {
+             // Love model (Heart)
+            const loveSetup = createPlaceholderScene('loveModel', true);
+            if (loveSetup) {
+                const heartShape = new THREE.Shape();
+heartShape.moveTo(0.25, -0.25); // Flipped Y
+
+heartShape.bezierCurveTo(0.25, -0.25, 0.2, 0, 0, 0);
+heartShape.bezierCurveTo(-0.3, 0, -0.3, -0.35, -0.3, -0.35);
+heartShape.bezierCurveTo(-0.3, -0.55, -0.1, -0.77, 0.25, -0.95);
+heartShape.bezierCurveTo(0.6, -0.77, 0.8, -0.55, 0.8, -0.35);
+heartShape.bezierCurveTo(0.8, -0.35, 0.8, 0, 0.5, 0);
+heartShape.bezierCurveTo(0.35, 0, 0.25, -0.25, 0.25, -0.25);
+
+                const extrudeSettings = { depth: 0.5, bevelEnabled: true, bevelThickness: 0.1, bevelSize: 0.1, bevelSegments: 3 };
+                const geometry = new THREE.ExtrudeGeometry(heartShape, extrudeSettings);
+                const material = new THREE.MeshStandardMaterial({ color: PINK_COLOR, roughness: 0.4 });
+                const model = new THREE.Mesh(geometry, material);
+                model.scale.set(2.5, 2.5, 2.5);
+                model.rotation.y = Math.PI;
+                loveSetup.scene.add(model);
+                loveSetup.camera.position.z = 7;
+                function animateLove() { requestAnimationFrame(animateLove); if(loveSetup.controls) loveSetup.controls.update(); loveSetup.renderer.render(loveSetup.scene, loveSetup.camera); }
+                animateLove();
+            }
+
+            // Happiness model (Smiley)
+            const happinessSetup = createPlaceholderScene('happinessModel', true);
+             if (happinessSetup) {
+                 const smileyGeometry = new THREE.SphereGeometry(2, 32, 16);
+                 const smileyMaterial = new THREE.MeshStandardMaterial({ color: 0xfebc3d, roughness: 0.6 });
+                 const smiley = new THREE.Mesh(smileyGeometry, smileyMaterial);
+                 happinessSetup.scene.add(smiley);
+
+                 const featureMaterial = new THREE.MeshBasicMaterial({ color: 0x333333 });
+                 const eyeGeometry = new THREE.SphereGeometry(0.3, 12, 8);
+                 const leftEye = new THREE.Mesh(eyeGeometry, featureMaterial);
+                 leftEye.position.set(-0.7, 0.5, 1.8);
+                 smiley.add(leftEye);
+                 const rightEye = new THREE.Mesh(eyeGeometry, featureMaterial);
+                 rightEye.position.set(0.7, 0.5, 1.8);
+                 smiley.add(rightEye);
+
+                 const curve = new THREE.EllipseCurve(0, -0.5, 1, 0.6, Math.PI * 1.1, Math.PI * 1.9, false, 0);
+                 const points = curve.getPoints(20);
+                 const mouthGeometry = new THREE.BufferGeometry().setFromPoints(points);
+                 const mouthMaterial = new THREE.LineBasicMaterial({ color: 0x333333, linewidth: 2 });
+                 const mouthLine = new THREE.Line(mouthGeometry, mouthMaterial);
+                 mouthLine.position.z = 1.9;
+                 mouthLine.rotation.z = Math.PI;
+                 smiley.add(mouthLine);
+
+                 happinessSetup.camera.position.z = 6;
+                 function animateHappiness() { requestAnimationFrame(animateHappiness); if(happinessSetup.controls) happinessSetup.controls.update(); happinessSetup.renderer.render(happinessSetup.scene, happinessSetup.camera); }
+                 animateHappiness();
+             }
+
+            // Togetherness model (Interlocked rings)
+            const togetherSetup = createPlaceholderScene('togetherModel', true);
+            if (togetherSetup) {
+                const ringGeometry = new THREE.TorusGeometry(1.5, 0.3, 16, 60);
+                const ringMaterial1 = new THREE.MeshStandardMaterial({ color: GOLD_COLOR, metalness: 0.8, roughness: 0.2 });
+                const ringMaterial2 = new THREE.MeshStandardMaterial({ color: SILVER_COLOR, metalness: 0.9, roughness: 0.15 });
+
+                const ring1 = new THREE.Mesh(ringGeometry, ringMaterial1);
+                ring1.rotation.x = Math.PI * 0.5;
+
+                const ring2 = new THREE.Mesh(ringGeometry, ringMaterial2);
+                ring2.rotation.x = Math.PI * 0.5;
+                ring2.rotation.y = Math.PI / 2.5;
+                ring2.position.x = 1.2;
+
+                const group = new THREE.Group();
+                group.add(ring1);
+                group.add(ring2);
+                togetherSetup.scene.add(group);
+                togetherSetup.camera.position.z = 7;
+                function animateTogether() { requestAnimationFrame(animateTogether); if(togetherSetup.controls) togetherSetup.controls.update(); togetherSetup.renderer.render(togetherSetup.scene, togetherSetup.camera); }
+                animateTogether();
+            }
+             onWindowResize();
+        }
+
+        // --- Photo Models (Keep as is) ---
+        function initPhotoModels() {
+             initPhotoModel('photoModel1', 'image2.jpg');
+             initPhotoModel('photoModel2', 'image3.jpeg');
+         }
+
+        function initPhotoModel(containerId, imageUrl) {
+             const container = document.getElementById(containerId);
+             if (!container) return;
+             const aspect = 3 / 2;
+             let width = container.clientWidth;
+             let height = container.clientHeight; // Use container height
+
+             const setup = createPlaceholderScene(containerId, true);
+             if (!setup) return;
+             const { scene, camera, renderer, controls } = setup;
+
+             camera.position.z = 7;
+             if(controls) {
+                controls.autoRotate = true;
+                controls.autoRotateSpeed = 0.4;
+             }
+
+             const frameDepth = 0.4;
+             const frameSize = 0.2;
+             // Adjust photo size based on container aspect vs photo aspect
+             const containerAspect = width / height;
+             let photoWidth, photoHeight;
+             if (containerAspect > aspect) { // Container wider than photo
+                 photoHeight = 4; // Max height
+                 photoWidth = photoHeight * aspect;
+             } else { // Container taller than photo
+                 photoWidth = 5; // Max width
+                 photoHeight = photoWidth / aspect;
+             }
+
+
+             const frameShape = new THREE.Shape();
+             frameShape.moveTo(-photoWidth/2 - frameSize, -photoHeight/2 - frameSize);
+             frameShape.lineTo(photoWidth/2 + frameSize, -photoHeight/2 - frameSize);
+             frameShape.lineTo(photoWidth/2 + frameSize, photoHeight/2 + frameSize);
+             frameShape.lineTo(-photoWidth/2 - frameSize, photoHeight/2 + frameSize);
+             frameShape.closePath();
+             const hole = new THREE.Path();
+             hole.moveTo(-photoWidth/2, -photoHeight/2); hole.lineTo(photoWidth/2, -photoHeight/2); hole.lineTo(photoWidth/2, photoHeight/2); hole.lineTo(-photoWidth/2, photoHeight/2); hole.closePath();
+             frameShape.holes.push(hole);
+             const extrudeSettings = { depth: frameDepth, bevelEnabled: false };
+             const frameGeometry = new THREE.ExtrudeGeometry(frameShape, extrudeSettings);
+             const frameMaterial = new THREE.MeshStandardMaterial({ color: WOOD_COLOR, roughness: 0.7, metalness: 0.1 });
+             const frame = new THREE.Mesh(frameGeometry, frameMaterial);
+             frame.position.z = -frameDepth / 2;
+             scene.add(frame);
+
+             const textureLoader = new THREE.TextureLoader();
+             textureLoader.load(imageUrl, (texture) => {
+                 const photoGeometry = new THREE.PlaneGeometry(photoWidth, photoHeight);
+                 const photoMaterial = new THREE.MeshLambertMaterial({ map: texture, side: THREE.DoubleSide });
+                 const photo = new THREE.Mesh(photoGeometry, photoMaterial);
+                 photo.position.z = 0.01;
+                 scene.add(photo);
+                 renderer.render(scene, camera);
+             }, undefined, (err) => {
+                  console.error('Error loading photo texture:', err);
+                  const photoGeometry = new THREE.PlaneGeometry(photoWidth, photoHeight);
+                  const photoMaterial = new THREE.MeshBasicMaterial({ color: 0xcccccc });
+                  const photo = new THREE.Mesh(photoGeometry, photoMaterial);
+                  photo.position.z = 0.01; scene.add(photo); renderer.render(scene, camera);
+              });
+
+              function animate() {
+                 requestAnimationFrame(animate);
+                  if(controls) controls.update();
+                  renderer.render(scene, camera);
+             }
+              animate();
+              onWindowResize(); // Initial size adjustment
+         }
+
+
+        // --- Gift Box Logic (Keep as is) ---
+         function initGiftModel() {
+            const container = document.getElementById('giftModel');
+            if (!container) return;
+            const setup = createPlaceholderScene('giftModel');
+             if (!setup) return;
+            const { scene, camera, renderer } = setup;
+            camera.position.set(0, 3, 10);
+            camera.lookAt(0, 0, 0);
+
+            giftBoxGroup = new THREE.Group();
+            scene.add(giftBoxGroup);
+            const boxSize = 4; const lidHeight = 0.6; const ribbonWidth = 0.4;
+            const baseGeometry = new THREE.BoxGeometry(boxSize, boxSize * 0.8, boxSize);
+            const baseMaterial = new THREE.MeshStandardMaterial({ color: RED_COLOR, roughness: 0.6 });
+            giftBase = new THREE.Mesh(baseGeometry, baseMaterial);
+            giftBase.position.y = -(boxSize * 0.8) / 2;
+            giftBoxGroup.add(giftBase);
+            const lidGeometry = new THREE.BoxGeometry(boxSize + 0.2, lidHeight, boxSize + 0.2);
+            const lidMaterial = new THREE.MeshStandardMaterial({ color: DARK_RED_COLOR, roughness: 0.5 });
+            giftLid = new THREE.Mesh(lidGeometry, lidMaterial);
+            giftLid.position.y = lidHeight / 2;
+            giftBoxGroup.add(giftLid);
+            const ribbonMaterial = new THREE.MeshStandardMaterial({ color: WHITE_COLOR, roughness: 0.8 });
+            const ribbonVertGeometry = new THREE.BoxGeometry(ribbonWidth, boxSize * 0.8 + lidHeight + 0.1, boxSize + 0.3);
+            const ribbonHorzGeometry = new THREE.BoxGeometry(boxSize + 0.3, boxSize * 0.8 + lidHeight + 0.1, ribbonWidth);
+            const ribbonVert = new THREE.Mesh(ribbonVertGeometry, ribbonMaterial);
+            ribbonVert.position.y = (lidHeight - (boxSize*0.8))/2;
+            giftBoxGroup.add(ribbonVert);
+            const ribbonHorz = new THREE.Mesh(ribbonHorzGeometry, ribbonMaterial);
+             ribbonHorz.position.y = (lidHeight - (boxSize*0.8))/2;
+            giftBoxGroup.add(ribbonHorz);
+             const bowGroup = new THREE.Group();
+             const loopGeometry = new THREE.TorusGeometry(0.6, 0.15, 8, 24);
+             const knotGeometry = new THREE.SphereGeometry(0.25, 8, 6);
+             const knot = new THREE.Mesh(knotGeometry, ribbonMaterial); bowGroup.add(knot);
+             const loop1 = new THREE.Mesh(loopGeometry, ribbonMaterial); loop1.scale.y = 0.7; loop1.position.x = 0.6; bowGroup.add(loop1);
+             const loop2 = new THREE.Mesh(loopGeometry, ribbonMaterial); loop2.scale.y = 0.7; loop2.position.x = -0.6; bowGroup.add(loop2);
+             bowGroup.position.y = lidHeight + 0.1; bowGroup.rotation.x = -Math.PI / 10;
+             giftLid.add(bowGroup);
+
+            container.addEventListener('click', handleGiftClick);
+
+            function animateGift() {
+                requestAnimationFrame(animateGift);
+                if (!isGiftOpen) { giftBoxGroup.rotation.y += 0.005; }
+                 renderer.render(scene, camera);
+            }
+            animateGift();
+             onWindowResize();
+        }
+
+        function handleGiftClick() {
+            if (isGiftOpen) return;
+            isGiftOpen = true;
+            const giftModelContainer = document.getElementById('giftModel');
+            giftModelContainer.style.cursor = 'default';
+
+            giftTimeline = gsap.timeline({ onComplete: () => { console.log("Gift animation complete"); } });
+
+            giftTimeline.to(giftBoxGroup.scale, { x: 1.1, y: 1.1, z: 1.1, duration: 0.1, yoyo: true, repeat: 3, ease: "power1.inOut" });
+            giftTimeline.to(giftLid.position, { y: giftLid.position.y + 2.5, duration: 0.6, ease: "power2.out" }, ">-0.1");
+            giftTimeline.to(giftLid.rotation, { x: -Math.PI / 3, z: Math.PI / 15, duration: 0.7, ease: "back.out(1.5)" }, "<+=0.1");
+
+            giftTimeline.add(() => {
+                const contributorTags = document.querySelectorAll('.contributor-tag');
+                 const namesContainer = document.getElementById('contributorNames');
+                 // Make container visible just before animating tags
+                 gsap.set(namesContainer, { opacity: 1 });
+                gsap.fromTo(contributorTags,
+                    { opacity: 0, y: 15, scale: 0.3, rotationZ: () => (Math.random() - 0.5) * 50 }, // Start position (slightly below, small, rotated)
+                    {
+                        opacity: 1, y: 0, scale: 1, rotationZ: 0,
+                        duration: 0.7, // Slightly shorter duration
+                        stagger: 0.1, // Slightly faster stagger
+                        ease: "back.out(2)", // More pronounced back ease
+                    }
+                );
+            }, ">-0.4");
+
+            giftTimeline.add(() => {
+                const giftContent = document.getElementById('giftContent');
+                const cheersCards = document.getElementById('cheersCards');
+                const revealedGiftContainer = document.getElementById('revealedGiftModelContainer');
+
+                giftContent.classList.add('visible');
+                cheersCards.classList.remove('hidden');
+
+                 gsap.fromTo(cheersCards.children,
+                   { opacity: 0, y: 20, scale: 0.8 },
+                   { opacity: 1, y: 0, scale: 1, duration: 0.4, stagger: 0.08, ease: "back.out(1.7)" }
+                 );
+
+                 gsap.to(revealedGiftContainer, {
+                     opacity: 1, scale: 1, duration: 0.8, ease: "elastic.out(1, 0.6)", delay: 0.3
+                 });
+                createConfetti();
+            }, ">-0.3");
+        }
+
+        // --- Revealed Gift Model (Keep stylized couple) ---
+        function initRevealedGiftModel() {
+            const container = document.getElementById('revealedGiftModel');
+             if (!container) return;
+            const setup = createPlaceholderScene('revealedGiftModel', true);
+             if (!setup) return;
+            const { scene, camera, renderer, controls } = setup;
+            camera.position.z = 8;
+            if(controls) controls.autoRotateSpeed = 1.0;
+
+            const figureMaterial = new THREE.MeshStandardMaterial({ color: GOLD_COLOR, metalness: 0.7, roughness: 0.3 });
+            const baseMaterial = new THREE.MeshStandardMaterial({ color: WOOD_COLOR, roughness: 0.8 });
+            const baseGeometry = new THREE.CylinderGeometry(1.5, 1.8, 0.5, 16);
+            const base = new THREE.Mesh(baseGeometry, baseMaterial);
+            base.position.y = -1.5; scene.add(base);
+            const body1Geom = new THREE.ConeGeometry(0.6, 2.5, 8);
+            const head1Geom = new THREE.SphereGeometry(0.5, 12, 8);
+            const figure1 = new THREE.Group();
+            const body1 = new THREE.Mesh(body1Geom, figureMaterial); const head1 = new THREE.Mesh(head1Geom, figureMaterial);
+            head1.position.y = 1.5; figure1.add(body1); figure1.add(head1);
+            figure1.position.set(-0.6, -0.2, 0); figure1.rotation.y = Math.PI / 8; scene.add(figure1);
+            const body2Geom = new THREE.ConeGeometry(0.5, 2.2, 8);
+            const head2Geom = new THREE.SphereGeometry(0.45, 12, 8);
+            const figure2 = new THREE.Group();
+            const body2 = new THREE.Mesh(body2Geom, figureMaterial); const head2 = new THREE.Mesh(head2Geom, figureMaterial);
+             head2.position.y = 1.3; figure2.add(body2); figure2.add(head2);
+             figure2.position.set(0.6, -0.4, 0); figure2.rotation.y = -Math.PI / 8; scene.add(figure2);
+
+            function animateRevealedGift() {
+                requestAnimationFrame(animateRevealedGift);
+                if(controls) controls.update();
+                renderer.render(scene, camera);
+            }
+            animateRevealedGift();
+             onWindowResize();
+        }
+
+        // --- Countdown Timer ---
+        const weddingDate = new Date('2025-04-23T15:00:00').getTime();
+        function updateCountdown() {
+            const now = new Date().getTime(); const distance = weddingDate - now;
+            const countdownEls = { days: document.getElementById('days'), hours: document.getElementById('hours'), minutes: document.getElementById('minutes'), seconds: document.getElementById('seconds') };
+            if (distance < 0) { Object.values(countdownEls).forEach(el => { if(el) el.textContent = "00"; }); clearInterval(countdownInterval); return; }
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24)); const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)); const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)); const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+            const timeValues = { days: days, hours: hours, minutes: minutes, seconds: seconds };
+             for (const unit in countdownEls) {
+                 const el = countdownEls[unit]; if (!el) continue;
+                 const newValue = timeValues[unit].toString().padStart(2, '0');
+                 if (el.textContent !== newValue) {
+                     el.textContent = newValue;
+                     gsap.fromTo(el, { scale: 1.2, opacity: 0.5 }, { scale: 1, opacity: 1, duration: 0.4, ease: 'power1.out' });
+                 }
+             }
+        }
+        const countdownInterval = setInterval(updateCountdown, 1000); updateCountdown();
+
+        // --- Form Submission ---
+        document.getElementById('deliveryForm')?.addEventListener('submit', function(e) {
+            e.preventDefault(); const formData = new FormData(this); const name = formData.get('name') || "Sindhuja & Srikanth";
+            console.log("Form Data:", Object.fromEntries(formData));
+            alert(`Thank you, ${name}! Your gift delivery request has been received. We'll be in touch via email soon.`);
+             this.style.display = 'none';
+             const thankYouMsg = document.createElement('p'); thankYouMsg.textContent = "We've got your details. Thanks again and congratulations!"; thankYouMsg.className = "text-center text-green-700 font-semibold mt-4"; this.parentNode.appendChild(thankYouMsg);
+        });
+
+        // --- Confetti Effect ---
+        function createConfetti() {
+             const confettiContainer = document.body;
+             const colors = ['#ff6b81', '#ff8e53', '#febc3d', '#a8e6cf', '#dcedc1', '#ffd3b6', '#ffaaa5'];
+             const confettiCount = 150;
+             for (let i = 0; i < confettiCount; i++) {
+                 const confetti = document.createElement('div'); confetti.className = 'confetti';
+                  const size = Math.random() * 8 + 4; confetti.style.width = `${size}px`; confetti.style.height = `${size}px`;
+                 confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                 confetti.style.position = 'fixed'; confetti.style.left = `${Math.random() * 100}vw`; confetti.style.top = `${-Math.random() * 20 - 10}px`; confetti.style.opacity = '0';
+                 confettiContainer.appendChild(confetti);
+                 gsap.to(confetti, {
+                     y: window.innerHeight + 50, x: `+=${(Math.random() - 0.5) * 300}`, rotation: `${Math.random() > 0.5 ? '+' : '-'}=${Math.random() * 720 + 360}`,
+                     opacity: 1, duration: Math.random() * 4 + 3, ease: 'power1.out', delay: Math.random() * 0.5, onComplete: () => { confetti.remove(); } });
+             }
+         }
+
+        // --- Initialize ---
+        window.addEventListener('load', () => {
+            console.log("Page loaded, initializing...");
+            initThreeJS();
+            // Delay resize call slightly to ensure layout is stable
+            requestAnimationFrame(() => {
+                onWindowResize();
+                 console.log("Initial resize complete.");
+            });
+            console.log("Initialization sequence started.");
+        });
+
+    </script>
+</body>
+</html>
